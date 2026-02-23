@@ -14,6 +14,8 @@ const useInvitationStore = create((set) => ({
     location: '',
     address: '',
     detailAddress: '',
+    transportation: '',
+    parkingInfo: '',
     phone: '',
   },
 
@@ -56,6 +58,13 @@ const useInvitationStore = create((set) => ({
   // RSVP 사용 여부
   useRSVP: true,
 
+  // 사진 보호 (롱프레스/우클릭 방지)
+  photoProtection: false,
+
+  // 카카오페이 링크
+  useKakaoPay: false,
+  kakaoPayLink: '',
+
   // 액션들 (정보를 변경하는 함수들)
   setType: (type) => set({ type }),
   setInfo: (info) =>
@@ -91,6 +100,9 @@ const useInvitationStore = create((set) => ({
     })),
   setShowQR: (showQR) => set({ showQR }),
   setUseRSVP: (useRSVP) => set({ useRSVP }),
+  setPhotoProtection: (photoProtection) => set({ photoProtection }),
+  setUseKakaoPay: (useKakaoPay) => set({ useKakaoPay }),
+  setKakaoPayLink: (kakaoPayLink) => set({ kakaoPayLink }),
 
   // 전체 초기화
   reset: () =>
@@ -104,6 +116,8 @@ const useInvitationStore = create((set) => ({
         location: '',
         address: '',
         detailAddress: '',
+        transportation: '',
+        parkingInfo: '',
         phone: '',
       },
       wedding: {
@@ -131,6 +145,9 @@ const useInvitationStore = create((set) => ({
       photos: [],
       showQR: true,
       useRSVP: true,
+      photoProtection: false,
+      useKakaoPay: false,
+      kakaoPayLink: '',
     }),
 }));
 

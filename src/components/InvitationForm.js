@@ -35,7 +35,9 @@ export default function InvitationForm({ type }) {
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 mb-2">정보 입력</h2>
-      <p className="text-sm text-gray-500 mb-4">초대장에 들어갈 내용을 입력해주세요</p>
+      <p className="text-sm text-gray-500 mb-4">
+        필수 정보부터 입력해 주세요. 세부 옵션은 다음 단계에서 언제든 바꿀 수 있어요.
+      </p>
 
       {/* 공통: 제목 */}
       <InputField
@@ -251,8 +253,20 @@ export default function InvitationForm({ type }) {
           value={info.detailAddress}
           onChange={(v) => setInfo({ detailAddress: v })}
         />
+        <InputField
+          label="교통 안내 (선택)"
+          placeholder="예) 2호선 강남역 4번 출구 도보 7분"
+          value={info.transportation || ''}
+          onChange={(v) => setInfo({ transportation: v })}
+        />
+        <InputField
+          label="주차 안내 (선택)"
+          placeholder="예) 건물 지하 주차장 2시간 무료"
+          value={info.parkingInfo || ''}
+          onChange={(v) => setInfo({ parkingInfo: v })}
+        />
         <p className="text-xs text-gray-400">
-          * 주소를 입력하면 초대장에 지도가 자동으로 표시됩니다
+          주소를 입력하면 지도가 자동으로 표시되고, 교통/주차 안내를 적으면 하객이 더 쉽게 찾아와요.
         </p>
       </div>
 
@@ -277,11 +291,23 @@ export default function InvitationForm({ type }) {
 
 // 사진 업로더 컴포넌트
 function PhotoUploader() {
-  const { photos, addPhoto, removePhoto } = useInvitationStore();
+  const {
+    photos,
+    addPhoto,
+    removePhoto,
+    photoProtection,
+    setPhotoProtection,
+  } = useInvitationStore();
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach((file) => {
+    const files = Array.from(e.target.files || []);
+    const availableSlots = Math.max(20 - photos.length, 0);
+    if (availableSlots === 0) {
+      e.target.value = '';
+      return;
+    }
+
+    files.slice(0, availableSlots).forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         addPhoto({
@@ -300,6 +326,11 @@ function PhotoUploader() {
     <div className="bg-white rounded-2xl p-5 shadow-sm">
       <h3 className="font-bold text-gray-700 mb-1">사진 갤러리</h3>
       <p className="text-xs text-gray-400 mb-4">최대 20장까지 업로드할 수 있어요</p>
+      {photos.length === 0 && (
+        <p className="text-xs text-gray-500 mb-4">
+          사진이 없어도 초대장은 완성됩니다. 필요하면 나중에 추가해도 돼요.
+        </p>
+      )}
 
       <div className="grid grid-cols-3 gap-2">
         {/* 업로드된 사진들 */}
@@ -309,6 +340,8 @@ function PhotoUploader() {
               src={photo.preview}
               alt={photo.name}
               className="w-full h-full object-cover"
+              onContextMenu={(e) => photoProtection && e.preventDefault()}
+              onDragStart={(e) => photoProtection && e.preventDefault()}
             />
             <button
               onClick={() => removePhoto(index)}
@@ -338,6 +371,25 @@ function PhotoUploader() {
           </label>
         )}
       </div>
+
+      <button
+        type="button"
+        aria-pressed={photoProtection}
+        onClick={() => setPhotoProtection(!photoProtection)}
+        className="mt-4 w-full rounded-xl border border-gray-200 p-3 text-left hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-700">사진 확대/저장 방지</span>
+          <span
+            className={`text-xs font-semibold ${photoProtection ? 'text-blue-600' : 'text-gray-400'}`}
+          >
+            {photoProtection ? 'ON' : 'OFF'}
+          </span>
+        </div>
+        <p className="mt-1 text-xs text-gray-500">
+          받는 분이 사진을 길게 눌러 저장하는 것을 줄여줘요.
+        </p>
+      </button>
     </div>
   );
 }

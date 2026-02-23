@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
@@ -13,7 +12,8 @@ import RSVPSection from './RSVPSection';
 export default function InvitationView({ data, isPreview = false }) {
   const {
     type, info, wedding, baby, accounts,
-    selectedDesign, photos, showQR, useRSVP
+    selectedDesign, photos, showQR, useRSVP,
+    photoProtection, useKakaoPay, kakaoPayLink
   } = data;
 
   const design = selectedDesign || {
@@ -42,6 +42,15 @@ export default function InvitationView({ data, isPreview = false }) {
     if (diff > 0) return `D-${diff}`;
     return `D+${Math.abs(diff)}`;
   };
+
+  const blockImageAction = (e) => {
+    if (!photoProtection) return;
+    e.preventDefault();
+  };
+
+  const normalizedKakaoPayLink = kakaoPayLink
+    ? (/^https?:\/\//i.test(kakaoPayLink) ? kakaoPayLink : `https://${kakaoPayLink}`)
+    : '';
 
   return (
     <div
@@ -112,6 +121,8 @@ export default function InvitationView({ data, isPreview = false }) {
               src={photos[0].preview}
               alt="메인 사진"
               className="w-full aspect-[4/5] object-cover"
+              onContextMenu={blockImageAction}
+              onDragStart={blockImageAction}
             />
           </div>
         </section>
@@ -191,6 +202,26 @@ export default function InvitationView({ data, isPreview = false }) {
       {info.address && (
         <section className="px-6 pb-12">
           <MapSection address={info.address} locationName={info.location} />
+          {(info.transportation || info.parkingInfo) && (
+            <div className="grid gap-3 mt-4">
+              {info.transportation && (
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <p className="text-xs font-semibold mb-1" style={{ color: design.accentColor }}>
+                    대중교통 안내
+                  </p>
+                  <p className="text-sm text-gray-700 whitespace-pre-line">{info.transportation}</p>
+                </div>
+              )}
+              {info.parkingInfo && (
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <p className="text-xs font-semibold mb-1" style={{ color: design.accentColor }}>
+                    주차 안내
+                  </p>
+                  <p className="text-sm text-gray-700 whitespace-pre-line">{info.parkingInfo}</p>
+                </div>
+              )}
+            </div>
+          )}
         </section>
       )}
 
@@ -217,6 +248,8 @@ export default function InvitationView({ data, isPreview = false }) {
                     src={photo.preview}
                     alt={`갤러리 ${index + 1}`}
                     className="w-full aspect-[4/5] object-cover"
+                    onContextMenu={blockImageAction}
+                    onDragStart={blockImageAction}
                   />
                 </SwiperSlide>
               ))}
@@ -252,6 +285,28 @@ export default function InvitationView({ data, isPreview = false }) {
       {accounts.length > 0 && (
         <section className="px-6 pb-12">
           <AccountSection accounts={accounts} design={design} />
+        </section>
+      )}
+
+      {/* ===== 카카오페이 ===== */}
+      {useKakaoPay && normalizedKakaoPayLink && (
+        <section className="px-6 pb-12">
+          <div className="bg-white/90 rounded-2xl p-6 shadow-sm text-center">
+            <h2 className="text-lg font-bold mb-2" style={{ color: design.fontColor }}>
+              간편 송금
+            </h2>
+            <p className="text-sm mb-4" style={{ color: design.fontColor + 'aa' }}>
+              카카오페이 링크로 편하게 마음을 전하실 수 있어요.
+            </p>
+            <a
+              href={normalizedKakaoPayLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold text-sm text-yellow-900 bg-yellow-300 hover:bg-yellow-400 transition-colors"
+            >
+              카카오페이 송금하기
+            </a>
+          </div>
         </section>
       )}
 

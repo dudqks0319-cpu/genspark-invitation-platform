@@ -3,49 +3,63 @@
 import useInvitationStore from '@/store/useInvitationStore';
 
 export default function OptionSelector() {
-  const { showQR, setShowQR, useRSVP, setUseRSVP } = useInvitationStore();
+  const {
+    showQR,
+    setShowQR,
+    useRSVP,
+    setUseRSVP,
+    photoProtection,
+    setPhotoProtection,
+  } = useInvitationStore();
 
   return (
-    <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-2">추가 옵션</h2>
-      <p className="text-sm text-gray-500 mb-4">원하는 기능을 선택해주세요</p>
-
-      <div className="space-y-3">
-        {/* QR코드 */}
-        <ToggleOption
-          title="QR코드 표시"
-          description="초대장 링크를 QR코드로도 보여줍니다"
-          enabled={showQR}
-          onToggle={() => setShowQR(!showQR)}
-        />
-
-        {/* 참석여부 */}
-        <ToggleOption
-          title="참석여부 (RSVP)"
-          description="받는 사람이 참석/불참을 알려줄 수 있어요"
-          enabled={useRSVP}
-          onToggle={() => setUseRSVP(!useRSVP)}
-        />
+    <div className="bg-white rounded-2xl p-5 shadow-sm space-y-4">
+      <div>
+        <h3 className="font-bold text-gray-800">표시 옵션</h3>
+        <p className="text-xs text-gray-500 mt-1">
+          추천 기본값: QR/참석여부 ON, 사진 보호 OFF
+        </p>
       </div>
+
+      <OptionToggle
+        title="QR 코드 표시"
+        description="종이 초대장이나 현장에서 스캔할 수 있도록 QR을 보여줘요."
+        enabled={showQR}
+        onToggle={() => setShowQR(!showQR)}
+      />
+
+      <OptionToggle
+        title="참석 여부 받기 (RSVP)"
+        description="하객이 참석/불참을 남길 수 있어 인원 파악이 쉬워져요."
+        enabled={useRSVP}
+        onToggle={() => setUseRSVP(!useRSVP)}
+      />
+
+      <OptionToggle
+        title="사진 확대/저장 방지"
+        description="사진을 길게 눌러 저장하는 동작을 줄여줘요."
+        enabled={photoProtection}
+        onToggle={() => setPhotoProtection(!photoProtection)}
+      />
     </div>
   );
 }
 
-function ToggleOption({ title, description, enabled, onToggle }) {
+function OptionToggle({ title, description, enabled, onToggle }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between">
-      <div>
-        <h3 className="font-bold text-gray-800 text-sm">{title}</h3>
-        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={enabled}
+      className="w-full text-left rounded-xl border border-gray-200 p-4 hover:bg-gray-50 transition-colors"
+    >
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-gray-800">{title}</p>
+        <span className={`text-xs font-semibold ${enabled ? 'text-blue-600' : 'text-gray-400'}`}>
+          {enabled ? 'ON' : 'OFF'}
+        </span>
       </div>
-      <button
-        onClick={onToggle}
-        className={`relative w-12 h-7 rounded-full transition-colors ${enabled ? 'bg-blue-500' : 'bg-gray-300'}`}
-      >
-        <div
-          className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5'}`}
-        />
-      </button>
-    </div>
+      <p className="text-xs text-gray-500 mt-1">{description}</p>
+    </button>
   );
 }

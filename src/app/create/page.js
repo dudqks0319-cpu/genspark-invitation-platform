@@ -7,6 +7,7 @@ import InvitationForm from '@/components/InvitationForm';
 import DesignSelector from '@/components/DesignSelector';
 import AccountForm from '@/components/AccountForm';
 import OptionSelector from '@/components/OptionSelector';
+import InvitationView from '@/components/InvitationView';
 
 // searchParams를 사용하는 실제 컴포넌트
 function CreateContent() {
@@ -15,6 +16,7 @@ function CreateContent() {
   const type = searchParams.get('type') || 'wedding';
 
   const { setType, selectedDesign } = useInvitationStore();
+  const previewStore = useInvitationStore();
 
   // 현재 단계 (1: 디자인선택, 2: 정보입력, 3: 계좌/옵션, 4: 완료)
   const [step, setStep] = useState(1);
@@ -105,24 +107,37 @@ function CreateContent() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="max-w-lg mx-auto px-4 py-6 pb-32">
-        {stepNotice && (
-          <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-            {stepNotice}
-          </div>
-        )}
-        {step === 1 && <DesignSelector type={type} />}
-        {step === 2 && <InvitationForm type={type} />}
-        {step === 3 && (
-          <>
-            <AccountForm />
-            <div className="mt-6">
-              <OptionSelector />
+      <div className="max-w-5xl mx-auto px-4 py-6 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
+        <main className="max-w-lg mx-auto lg:mx-0 px-0 py-0">
+          {stepNotice && (
+            <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+              {stepNotice}
             </div>
-          </>
-        )}
-        {step === 4 && <CompletionStep />}
-      </main>
+          )}
+          {step === 1 && <DesignSelector type={type} />}
+          {step === 2 && <InvitationForm type={type} />}
+          {step === 3 && (
+            <>
+              <AccountForm />
+              <div className="mt-6">
+                <OptionSelector />
+              </div>
+            </>
+          )}
+          {step === 4 && <CompletionStep />}
+        </main>
+
+        <aside className="hidden lg:block">
+          <div className="sticky top-[98px] space-y-2">
+            <p className="text-sm font-semibold text-gray-600">실시간 미리보기</p>
+            <div className="bg-white rounded-3xl shadow-xl p-3">
+              <div className="w-[320px] mx-auto overflow-hidden rounded-[35px] border border-gray-200 bg-gray-50">
+                <InvitationView data={previewStore} />
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       {/* 하단 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
