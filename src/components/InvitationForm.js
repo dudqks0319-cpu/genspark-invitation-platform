@@ -295,15 +295,20 @@ function PhotoUploader() {
     photos,
     addPhoto,
     removePhoto,
+    mainPhotoIndex,
+    setMainPhotoIndex,
+    backgroundPhotoIndex,
+    setBackgroundPhotoIndex,
     photoProtection,
     setPhotoProtection,
   } = useInvitationStore();
+  const inputId = 'photo-upload-input';
+  const [isDragOver, setIsDragOver] = useState(false);
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files || []);
+  const addFiles = (incomingFiles) => {
+    const files = Array.from(incomingFiles || []).filter((file) => file.type?.startsWith('image/'));
     const availableSlots = Math.max(20 - photos.length, 0);
-    if (availableSlots === 0) {
-      e.target.value = '';
+    if (availableSlots === 0 || files.length === 0) {
       return;
     }
 
@@ -318,8 +323,38 @@ function PhotoUploader() {
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleFileChange = (e) => {
+    addFiles(e.target.files);
     // input 초기화
     e.target.value = '';
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    addFiles(e.dataTransfer?.files);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragOver) setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handlePaste = (e) => {
+    const files = e.clipboardData?.files;
+    if (!files || files.length === 0) return;
+    e.preventDefault();
+    addFiles(files);
   };
 
   return (
@@ -351,26 +386,103 @@ function PhotoUploader() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
+            <div className="absolute bottom-1 left-1 right-1 flex gap-1">
+              <button
+                type="button"
+                onClick={() => setMainPhotoIndex(index)}
+                className={`flex-1 rounded-md px-1.5 py-1 text-[10px] font-semibold ${
+                  mainPhotoIndex === index
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white/85 text-gray-700'
+                }`}
+              >
+                {mainPhotoIndex === index ? '메인' : '메인으로'}
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setBackgroundPhotoIndex(
+                    backgroundPhotoIndex === index ? null : index
+                  )
+                }
+                className={`flex-1 rounded-md px-1.5 py-1 text-[10px] font-semibold ${
+                  backgroundPhotoIndex === index
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-white/85 text-gray-700'
+                }`}
+              >
+                {backgroundPhotoIndex === index ? '배경 사용중' : '배경으로'}
+              </button>
+            </div>
           </div>
         ))}
 
         {/* 추가 버튼 */}
         {photos.length < 20 && (
-          <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
+          <label
+            htmlFor={inputId}
+            className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:border-blue-400 transition-colors cursor-pointer"
+            aria-label="사진 추가"
+          >
             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             <span className="text-xs text-gray-400 mt-1">{photos.length}/20</span>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleFileChange}
-            />
           </label>
         )}
       </div>
+
+      {photos.length < 20 && (
+        <div className="mt-3">
+          <label
+            htmlFor={inputId}
+            className="block w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer text-center"
+          >
+            사진 파일 선택
+          </label>
+        </div>
+      )}
+
+      {photos.length < 20 && (
+        <div
+          data-testid="photo-dropzone"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onPaste={handlePaste}
+          tabIndex={0}
+          className={`mt-3 rounded-xl border-2 border-dashed p-3 text-center outline-none transition-colors ${
+            isDragOver
+              ? 'border-blue-400 bg-blue-50'
+              : 'border-gray-200 bg-gray-50'
+          }`}
+        >
+          <p className="text-xs font-medium text-gray-700">
+            여기로 사진을 끌어다 놓아도 업로드돼요
+          </p>
+          <p className="mt-1 text-[11px] text-gray-500">
+            또는 이 영역을 클릭 후 Cmd+V(붙여넣기)
+          </p>
+        </div>
+      )}
+
+      {photos.length > 0 && (
+        <p className="mt-3 text-xs text-gray-500">
+          메인 사진: {photos[mainPhotoIndex]?.name || '-'} · 배경 사진:{' '}
+          {backgroundPhotoIndex !== null
+            ? photos[backgroundPhotoIndex]?.name || '-'
+            : '사용 안 함'}
+        </p>
+      )}
+
+      <input
+        id={inputId}
+        type="file"
+        accept="image/*"
+        multiple
+        className="mt-3 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-600"
+        onChange={handleFileChange}
+      />
 
       <button
         type="button"

@@ -13,7 +13,8 @@ export default function InvitationView({ data, isPreview = false }) {
   const {
     type, info, wedding, baby, accounts,
     selectedDesign, photos, showQR, useRSVP,
-    photoProtection, useKakaoPay, kakaoPayLink
+    photoProtection, useKakaoPay, kakaoPayLink,
+    mainPhotoIndex, backgroundPhotoIndex
   } = data;
 
   const design = selectedDesign || {
@@ -21,6 +22,28 @@ export default function InvitationView({ data, isPreview = false }) {
     accentColor: '#e8a0bf',
     name: '기본',
   };
+  const textColor =
+    (design.fontColor || '').toLowerCase() === '#ffffff'
+      ? '#2f2a26'
+      : (design.fontColor || '#333333');
+  const safeMainPhotoIndex =
+    Number.isInteger(mainPhotoIndex) && mainPhotoIndex >= 0 && mainPhotoIndex < photos.length
+      ? mainPhotoIndex
+      : 0;
+  const selectedMainPhoto = photos[safeMainPhotoIndex];
+  const selectedBackgroundPhoto =
+    Number.isInteger(backgroundPhotoIndex) &&
+    backgroundPhotoIndex >= 0 &&
+    backgroundPhotoIndex < photos.length
+      ? photos[backgroundPhotoIndex]
+      : null;
+  const galleryPhotos = photos.filter((_, index) => index !== safeMainPhotoIndex);
+
+  const bodyBackground = selectedBackgroundPhoto
+    ? `linear-gradient(180deg, rgba(255,255,255,0.84) 0%, rgba(255,255,255,0.92) 38%, rgba(255,255,255,0.96) 100%), url(${selectedBackgroundPhoto.preview})`
+    : design.background
+      ? `linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 35%, rgba(255,255,255,0.97) 100%), url(${design.background})`
+      : `linear-gradient(180deg, ${design.accentColor}16 0%, #fffaf8 35%, #ffffff 100%)`;
 
   // 날짜 포맷
   const formatDate = (dateStr) => {
@@ -54,9 +77,9 @@ export default function InvitationView({ data, isPreview = false }) {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen bg-cover bg-center"
       style={{
-        background: `linear-gradient(180deg, ${design.accentColor}11 0%, white 30%, white 70%, ${design.accentColor}11 100%)`,
+        backgroundImage: bodyBackground,
       }}
     >
       {/* ===== 메인 섹션 ===== */}
@@ -67,7 +90,7 @@ export default function InvitationView({ data, isPreview = false }) {
         {/* 제목 */}
         <h1
           className="text-3xl font-bold mb-4"
-          style={{ color: design.fontColor }}
+          style={{ color: textColor }}
         >
           {info.title || '초대합니다'}
         </h1>
@@ -75,11 +98,11 @@ export default function InvitationView({ data, isPreview = false }) {
         {/* 결혼식: 신랑·신부 이름 */}
         {type === 'wedding' && (
           <div className="flex items-center justify-center gap-4 mt-6">
-            <span className="text-xl font-medium" style={{ color: design.fontColor }}>
+            <span className="text-xl font-medium" style={{ color: textColor }}>
               {wedding.groomName || '신랑'}
             </span>
             <span style={{ color: design.accentColor }} className="text-2xl">&</span>
-            <span className="text-xl font-medium" style={{ color: design.fontColor }}>
+            <span className="text-xl font-medium" style={{ color: textColor }}>
               {wedding.brideName || '신부'}
             </span>
           </div>
@@ -87,7 +110,7 @@ export default function InvitationView({ data, isPreview = false }) {
 
         {/* 돌잔치: 아기 이름 */}
         {type === 'baby' && (
-          <p className="text-xl font-medium mt-4" style={{ color: design.fontColor }}>
+          <p className="text-xl font-medium mt-4" style={{ color: textColor }}>
             {baby.babyName || '우리 아기'}의 첫 번째 생일
           </p>
         )}
@@ -95,7 +118,7 @@ export default function InvitationView({ data, isPreview = false }) {
         {/* 날짜 */}
         {info.date && (
           <div className="mt-6">
-            <p className="text-sm" style={{ color: design.fontColor + 'aa' }}>
+            <p className="text-sm" style={{ color: textColor + 'aa' }}>
               {formatDate(info.date)}
             </p>
             <p
@@ -114,11 +137,11 @@ export default function InvitationView({ data, isPreview = false }) {
       </section>
 
       {/* ===== 메인 사진 (첫번째 사진) ===== */}
-      {photos.length > 0 && (
+      {selectedMainPhoto && (
         <section className="px-6 pb-12">
           <div className="rounded-2xl overflow-hidden shadow-lg">
             <img
-              src={photos[0].preview}
+              src={selectedMainPhoto.preview}
               alt="메인 사진"
               className="w-full aspect-[4/5] object-cover"
               onContextMenu={blockImageAction}
@@ -134,7 +157,7 @@ export default function InvitationView({ data, isPreview = false }) {
           <div className="bg-white/80 rounded-2xl p-8 text-center shadow-sm">
             <p
               className="text-sm leading-7 whitespace-pre-line"
-              style={{ color: design.fontColor }}
+              style={{ color: textColor }}
             >
               {info.greetingMessage}
             </p>
@@ -149,21 +172,21 @@ export default function InvitationView({ data, isPreview = false }) {
             <div className="grid grid-cols-2 gap-4 text-center text-sm">
               <div>
                 <p className="text-xs mb-2" style={{ color: design.accentColor }}>신랑측</p>
-                <p style={{ color: design.fontColor }}>
+                <p style={{ color: textColor }}>
                   {wedding.groomFatherName && <span>{wedding.groomFatherName} · </span>}
                   {wedding.groomMotherName && <span>{wedding.groomMotherName}</span>}
                 </p>
-                <p className="font-bold mt-1" style={{ color: design.fontColor }}>
+                <p className="font-bold mt-1" style={{ color: textColor }}>
                   의 아들 {wedding.groomName}
                 </p>
               </div>
               <div>
                 <p className="text-xs mb-2" style={{ color: design.accentColor }}>신부측</p>
-                <p style={{ color: design.fontColor }}>
+                <p style={{ color: textColor }}>
                   {wedding.brideFatherName && <span>{wedding.brideFatherName} · </span>}
                   {wedding.brideMotherName && <span>{wedding.brideMotherName}</span>}
                 </p>
-                <p className="font-bold mt-1" style={{ color: design.fontColor }}>
+                <p className="font-bold mt-1" style={{ color: textColor }}>
                   의 딸 {wedding.brideName}
                 </p>
               </div>
@@ -175,24 +198,24 @@ export default function InvitationView({ data, isPreview = false }) {
       {/* ===== 예식/행사 정보 ===== */}
       <section className="px-6 pb-12">
         <div className="text-center mb-6">
-          <h2 className="text-lg font-bold" style={{ color: design.fontColor }}>
+          <h2 className="text-lg font-bold" style={{ color: textColor }}>
             {type === 'wedding' ? '예식 안내' : '행사 안내'}
           </h2>
         </div>
         <div className="bg-white/80 rounded-2xl p-6 shadow-sm text-center space-y-3">
-          <p className="text-sm" style={{ color: design.fontColor }}>
+          <p className="text-sm" style={{ color: textColor }}>
             {formatDate(info.date)}
           </p>
           {info.time && (
-            <p className="text-sm" style={{ color: design.fontColor }}>
+            <p className="text-sm" style={{ color: textColor }}>
               {info.time}
             </p>
           )}
           <div className="w-8 h-0.5 mx-auto" style={{ backgroundColor: design.accentColor + '44' }} />
-          <p className="font-bold" style={{ color: design.fontColor }}>
+          <p className="font-bold" style={{ color: textColor }}>
             {info.location}
           </p>
-          <p className="text-xs" style={{ color: design.fontColor + '88' }}>
+          <p className="text-xs" style={{ color: textColor + '88' }}>
             {info.address} {info.detailAddress}
           </p>
         </div>
@@ -226,10 +249,10 @@ export default function InvitationView({ data, isPreview = false }) {
       )}
 
       {/* ===== 갤러리 ===== */}
-      {photos.length > 1 && (
+      {galleryPhotos.length > 0 && (
         <section className="pb-12">
           <div className="text-center mb-6">
-            <h2 className="text-lg font-bold" style={{ color: design.fontColor }}>
+            <h2 className="text-lg font-bold" style={{ color: textColor }}>
               갤러리
             </h2>
           </div>
@@ -242,7 +265,7 @@ export default function InvitationView({ data, isPreview = false }) {
               slidesPerView={1}
               className="rounded-2xl overflow-hidden shadow-lg"
             >
-              {photos.map((photo, index) => (
+              {galleryPhotos.map((photo, index) => (
                 <SwiperSlide key={index}>
                   <img
                     src={photo.preview}
@@ -261,7 +284,7 @@ export default function InvitationView({ data, isPreview = false }) {
       {/* ===== 연락처 ===== */}
       <section className="px-6 pb-12">
         <div className="text-center mb-6">
-          <h2 className="text-lg font-bold" style={{ color: design.fontColor }}>연락하기</h2>
+          <h2 className="text-lg font-bold" style={{ color: textColor }}>연락하기</h2>
         </div>
         <div className="space-y-3">
           {type === 'wedding' ? (
@@ -292,10 +315,10 @@ export default function InvitationView({ data, isPreview = false }) {
       {useKakaoPay && normalizedKakaoPayLink && (
         <section className="px-6 pb-12">
           <div className="bg-white/90 rounded-2xl p-6 shadow-sm text-center">
-            <h2 className="text-lg font-bold mb-2" style={{ color: design.fontColor }}>
+            <h2 className="text-lg font-bold mb-2" style={{ color: textColor }}>
               간편 송금
             </h2>
-            <p className="text-sm mb-4" style={{ color: design.fontColor + 'aa' }}>
+            <p className="text-sm mb-4" style={{ color: textColor + 'aa' }}>
               카카오페이 링크로 편하게 마음을 전하실 수 있어요.
             </p>
             <a
@@ -327,7 +350,7 @@ export default function InvitationView({ data, isPreview = false }) {
       {/* ===== 엔딩 ===== */}
       <section className="text-center py-16 px-6">
         <div className="w-12 h-0.5 mx-auto mb-6" style={{ backgroundColor: design.accentColor }} />
-        <p className="text-sm" style={{ color: design.fontColor + '88' }}>
+        <p className="text-sm" style={{ color: textColor + '88' }}>
           소중한 분들을 초대합니다
         </p>
         <div className="w-12 h-0.5 mx-auto mt-6" style={{ backgroundColor: design.accentColor }} />

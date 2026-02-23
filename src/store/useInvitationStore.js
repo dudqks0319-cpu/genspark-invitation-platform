@@ -51,6 +51,8 @@ const useInvitationStore = create((set) => ({
 
   // 갤러리 사진
   photos: [],
+  mainPhotoIndex: 0,
+  backgroundPhotoIndex: null,
 
   // QR코드 표시 여부
   showQR: true,
@@ -95,9 +97,49 @@ const useInvitationStore = create((set) => ({
       photos: [...state.photos, photo],
     })),
   removePhoto: (index) =>
-    set((state) => ({
-      photos: state.photos.filter((_, i) => i !== index),
-    })),
+    set((state) => {
+      const nextPhotos = state.photos.filter((_, i) => i !== index);
+
+      let nextMainPhotoIndex = state.mainPhotoIndex;
+      let nextBackgroundPhotoIndex = state.backgroundPhotoIndex;
+
+      if (nextPhotos.length === 0) {
+        nextMainPhotoIndex = 0;
+        nextBackgroundPhotoIndex = null;
+      } else {
+        if (index === state.mainPhotoIndex) {
+          nextMainPhotoIndex = 0;
+        } else if (index < state.mainPhotoIndex) {
+          nextMainPhotoIndex = Math.max(state.mainPhotoIndex - 1, 0);
+        } else if (state.mainPhotoIndex >= nextPhotos.length) {
+          nextMainPhotoIndex = 0;
+        }
+
+        if (index === state.backgroundPhotoIndex) {
+          nextBackgroundPhotoIndex = null;
+        } else if (
+          state.backgroundPhotoIndex !== null &&
+          index < state.backgroundPhotoIndex
+        ) {
+          nextBackgroundPhotoIndex = state.backgroundPhotoIndex - 1;
+        }
+
+        if (
+          nextBackgroundPhotoIndex !== null &&
+          nextBackgroundPhotoIndex >= nextPhotos.length
+        ) {
+          nextBackgroundPhotoIndex = null;
+        }
+      }
+
+      return {
+        photos: nextPhotos,
+        mainPhotoIndex: nextMainPhotoIndex,
+        backgroundPhotoIndex: nextBackgroundPhotoIndex,
+      };
+    }),
+  setMainPhotoIndex: (mainPhotoIndex) => set({ mainPhotoIndex }),
+  setBackgroundPhotoIndex: (backgroundPhotoIndex) => set({ backgroundPhotoIndex }),
   setShowQR: (showQR) => set({ showQR }),
   setUseRSVP: (useRSVP) => set({ useRSVP }),
   setPhotoProtection: (photoProtection) => set({ photoProtection }),
@@ -143,6 +185,8 @@ const useInvitationStore = create((set) => ({
       selectedDesign: null,
       isPremium: false,
       photos: [],
+      mainPhotoIndex: 0,
+      backgroundPhotoIndex: null,
       showQR: true,
       useRSVP: true,
       photoProtection: false,
