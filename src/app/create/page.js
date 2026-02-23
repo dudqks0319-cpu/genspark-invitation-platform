@@ -14,10 +14,11 @@ function CreateContent() {
   const router = useRouter();
   const type = searchParams.get('type') || 'wedding';
 
-  const { setType } = useInvitationStore();
+  const { setType, selectedDesign } = useInvitationStore();
 
   // 현재 단계 (1: 디자인선택, 2: 정보입력, 3: 계좌/옵션, 4: 완료)
   const [step, setStep] = useState(1);
+  const [stepNotice, setStepNotice] = useState('');
 
   useEffect(() => {
     setType(type);
@@ -39,6 +40,13 @@ function CreateContent() {
   ];
 
   const handleNext = () => {
+    if (step === 1 && !selectedDesign) {
+      setStepNotice('디자인을 먼저 선택해주세요.');
+      return;
+    }
+
+    setStepNotice('');
+
     if (step < 4) {
       setStep(step + 1);
       window.scrollTo(0, 0);
@@ -46,6 +54,7 @@ function CreateContent() {
   };
 
   const handlePrev = () => {
+    setStepNotice('');
     if (step > 1) {
       setStep(step - 1);
       window.scrollTo(0, 0);
@@ -97,6 +106,11 @@ function CreateContent() {
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-lg mx-auto px-4 py-6 pb-32">
+        {stepNotice && (
+          <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+            {stepNotice}
+          </div>
+        )}
         {step === 1 && <DesignSelector type={type} />}
         {step === 2 && <InvitationForm type={type} />}
         {step === 3 && (
@@ -123,9 +137,13 @@ function CreateContent() {
           )}
           <button
             onClick={step === 4 ? handleComplete : handleNext}
-            className="flex-[2] py-4 rounded-xl text-white font-semibold bg-blue-500 active:bg-blue-600"
+            className={`flex-[2] py-4 rounded-xl text-white font-semibold ${
+              step === 1 && !selectedDesign
+                ? 'bg-blue-300'
+                : 'bg-blue-500 active:bg-blue-600'
+            }`}
           >
-            {step === 4 ? '미리보기' : '다음'}
+            {step === 4 ? '미리보기' : step === 1 ? '이 디자인으로 시작하기' : '다음'}
           </button>
         </div>
       </div>
