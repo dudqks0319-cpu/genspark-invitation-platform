@@ -191,7 +191,7 @@ function CompletionStep() {
 
       <div className="bg-blue-50 rounded-2xl p-5">
         <p className="text-blue-700 text-sm">
-          모든 정보를 확인하셨으면 "미리보기" 버튼을 눌러주세요!
+          모든 정보를 확인하셨으면 &quot;미리보기&quot; 버튼을 눌러주세요!
           미리보기에서 최종 초대장 모습을 확인할 수 있어요.
         </p>
       </div>
